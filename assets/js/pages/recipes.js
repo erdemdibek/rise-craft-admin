@@ -1,54 +1,156 @@
-document.addEventListener("click", async (e) => {
+document.addEventListener("DOMContentLoaded", async () => {
 
-    const btn = e.target.closest("[data-profession]");
+    try {
 
-    if (!btn) return;
+        const professions = await professionService.load();
 
-    const profession = btn.dataset.profession;
+        state.setProfessions(professions);
 
-    const recipes = await recipeService.load(profession);
+        sidebar.render(professions);
 
-    renderRecipes(recipes);
+        bindSidebarEvents();
+
+        bindSearch();
+
+    } catch (e) {
+
+        console.error(e);
+
+        alert("Meslekler yüklenemedi.");
+
+    }
 
 });
 
-function renderRecipes(recipes){
+async function loadProfession(profession) {
 
-    const tbody=document.getElementById("recipeTable");
+    try {
 
-    tbody.innerHTML="";
+        state.setCurrentProfession(profession);
 
-    recipes.forEach(recipe=>{
+        document.getElementById("selectedProfession").innerText =
+            profession
+                .replaceAll("_", " ")
+                .replace(/\b\w/g, l => l.toUpperCase());
 
-        tbody.innerHTML+=`
+        let recipes;
 
-<tr>
+        if (state.hasDraft(profession)) {
 
-<td>${recipe.id}</td>
+            recipes = state.getDraft(profession);
 
-<td>${recipe.name}</td>
+        } else {
 
-<td>${recipe.levelRequired}</td>
+            recipes = await recipeService.load(profession);
 
-<td>${recipe.xpGiven}</td>
+        }
 
-<td>
+        state.setRecipes(recipes);
 
-<button
-class="btn btn-sm btn-warning"
+        recipeTable.setRecipes(recipes);
 
-data-edit="${recipe.id}">
+    } catch (e) {
 
-Edit
+        console.error(e);
 
-</button>
+        alert("Recipe yüklenemedi.");
 
-</td>
+    }
 
-</tr>
+}
 
-`;
+function bindSidebarEvents() {
+
+    document.querySelectorAll("[data-profession]").forEach(button => {
+
+        button.addEventListener("click", () => {
+
+            loadProfession(button.dataset.profession);
+
+        });
 
     });
+
+}
+
+function bindSearch() {
+
+    const input = document.getElementById("searchInput");
+
+    input.addEventListener("input", () => {
+
+        const text = input.value.toLowerCase();
+
+        const filtered = state.recipes.filter(recipe =>
+
+            recipe.name.toLowerCase().includes(text) ||
+
+            recipe.id.toLowerCase().includes(text)
+
+        );
+
+        recipeTable.setRecipes(filtered);
+
+    });
+
+}
+
+document.addEventListener("click", e => {
+
+    if (e.target.closest(".editRecipe")) {
+
+        const index =
+            e.target.closest(".editRecipe").dataset.index;
+
+        openEditor(index);
+
+    }
+
+    if (e.target.closest(".deleteRecipe")) {
+
+        const index =
+            e.target.closest(".deleteRecipe").dataset.index;
+
+        deleteRecipe(index);
+
+    }
+
+});
+
+function openEditor(index) {
+
+    state.setSelectedRecipe(state.recipes[index]);
+
+    location.href =
+        `editor.html?profession=${state.currentProfession}&index=${index}`;
+
+}
+
+function deleteRecipe(index) {
+
+    if (!confirm("Recipe silinsin mi?"))
+        return;
+
+    state.recipes.splice(index, 1);
+
+    state.saveDraft(
+
+        state.currentProfession,
+
+        state.recipes
+
+    );
+
+    publishService.addRecipeFile(
+
+        state.currentProfession,
+
+        state.recipes
+
+    );
+
+    recipeTable.setRecipes(state.recipes);
+
+    navbar.update();
 
 }
