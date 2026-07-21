@@ -2,66 +2,121 @@ class Navbar {
 
     constructor() {
 
-        this.publishButton = document.getElementById("publishButton");
+        this.publishButtons = [
+            ...document.querySelectorAll("#publishButton, #publishButtonDesktop")
+        ];
 
-        this.draftBadge = document.getElementById("draftBadge");
+        this.draftBadges = [
+            ...document.querySelectorAll("#draftBadge, #draftBadgeDesktop")
+        ];
 
-        this.defaultButtonHtml = `
-            <i class="bi bi-cloud-upload"></i>
-            Publish
-        `;
+        this.statusText = document.getElementById("navbarStatus");
 
-        if (this.publishButton) {
-
-            this.publishButton.addEventListener("click", () => {
-
-                publishService.publish();
-
-            });
-
-        }
+        this.bindEvents();
 
         this.update();
 
     }
 
-    update() {
+    bindEvents() {
 
-        if (!this.publishButton || !this.draftBadge) {
-            return;
-        }
+        this.publishButtons.forEach(button => {
+
+            button.addEventListener("click", () => {
+
+                publishService.publish();
+
+            });
+
+        });
+
+    }
+
+    update() {
 
         const total = publishService.getFiles().length;
 
-        this.draftBadge.textContent = total;
+        this.draftBadges.forEach(badge => {
 
-        this.publishButton.disabled = total === 0;
+            badge.textContent = total;
 
-        this.publishButton.innerHTML = `
-            <i class="bi bi-cloud-upload"></i>
-            Publish (${total})
-        `;
+        });
+
+        this.publishButtons.forEach(button => {
+
+            button.disabled = total === 0;
+
+            button.innerHTML = `
+
+                <i class="bi bi-cloud-upload"></i>
+
+                Publish
+
+                <span class="badge bg-dark ms-2">
+
+                    ${total}
+
+                </span>
+
+            `;
+
+        });
+
+        if (this.statusText) {
+
+            this.statusText.innerHTML = total > 0
+
+                ? `<span class="text-warning">
+                        ● ${total} değişiklik bekliyor
+                   </span>`
+
+                : `<span class="text-success">
+                        ● Hazır
+                   </span>`;
+
+        }
 
     }
 
     setLoading(isLoading) {
 
-        if (!this.publishButton) {
-            return;
+        this.publishButtons.forEach(button => {
+
+            if (isLoading) {
+
+                button.disabled = true;
+
+                button.innerHTML = `
+
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+
+                    Publishing...
+
+                `;
+
+            } else {
+
+                button.disabled = false;
+
+            }
+
+        });
+
+        if (this.statusText) {
+
+            this.statusText.innerHTML = isLoading
+
+                ? `<span class="text-warning">
+                        ● Uploading...
+                   </span>`
+
+                : `<span class="text-success">
+                        ● Hazır
+                   </span>`;
+
         }
 
-        if (isLoading) {
-
-            this.publishButton.disabled = true;
-
-            this.publishButton.innerHTML = `
-                <span class="spinner-border spinner-border-sm me-2"></span>
-                Publishing...
-            `;
-
-        } else {
-
-            this.publishButton.innerHTML = this.defaultButtonHtml;
+        if (!isLoading) {
 
             this.update();
 
