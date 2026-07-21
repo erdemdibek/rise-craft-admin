@@ -6,8 +6,6 @@ const CONFIG = {
 
     BRANCH: "main",
 
-    TOKEN: "",
-
     RAW_BASE:
         "https://raw.githubusercontent.com/erdemdibek/rise-craft-companion-data/main"
 
