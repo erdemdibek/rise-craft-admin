@@ -4,19 +4,15 @@
 <head>
 
 <meta charset="UTF-8">
-
-<meta name="viewport"
-content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Recipe Editor</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css" rel="stylesheet">
 
-<link rel="stylesheet"
-href="assets/css/theme.css">
-
-<link rel="stylesheet"
-href="assets/css/app.css">
+<link rel="stylesheet" href="assets/css/theme.css">
+<link rel="stylesheet" href="assets/css/app.css">
 
 </head>
 
@@ -24,11 +20,19 @@ href="assets/css/app.css">
 
 <div class="layout">
 
-<div id="sidebar"></div>
+<aside class="sidebar">
 
-<div class="content">
+<h3>Rise Craft</h3>
 
-<div id="navbar"></div>
+</aside>
+
+<main class="content">
+
+<div class="topbar">
+
+<h4>Recipe Editor</h4>
+
+</div>
 
 <div class="container-fluid mt-4">
 
@@ -38,34 +42,43 @@ href="assets/css/app.css">
 
 <div class="card-dark p-4">
 
-<h3>Recipe Bilgileri</h3>
+<input id="recipeId" class="form-control mb-3" placeholder="Recipe ID">
 
 <input id="recipeName" class="form-control mb-3" placeholder="Recipe Name">
 
-<input id="recipeId" class="form-control mb-3" placeholder="Recipe ID">
+<input id="recipeLevel" type="number" class="form-control mb-3" placeholder="Required Level">
 
-<input id="recipeLevel" class="form-control mb-3" type="number" placeholder="Required Level">
+<input id="recipeXp" type="number" class="form-control mb-3" placeholder="XP">
 
-<input id="recipeXp" class="form-control mb-3" type="number" placeholder="XP">
+<div class="form-check form-switch mb-3">
 
-<div class="form-check form-switch">
-
-<input id="intermediate"
-class="form-check-input"
-type="checkbox">
+<input id="recipeIntermediate" class="form-check-input" type="checkbox">
 
 <label class="form-check-label">
 
-Intermediate
+Intermediate Recipe
 
 </label>
 
 </div>
 
-<button id="saveBtn"
-class="btn btn-warning mt-4">
+<hr>
 
-Kaydet
+<h5>Materials</h5>
+
+<div id="materialContainer"></div>
+
+<button id="addMaterial" class="btn btn-outline-warning mt-3">
+
++ Material Ekle
+
+</button>
+
+<hr>
+
+<button id="saveDraft" class="btn btn-warning">
+
+Taslağa Kaydet
 
 </button>
 
@@ -77,11 +90,9 @@ Kaydet
 
 <div class="card-dark p-4">
 
-<h3>JSON Önizleme</h3>
+<h5>JSON Preview</h5>
 
-<pre id="jsonPreview">{ }</pre>
-
-</div>
+<pre id="jsonPreview"></pre>
 
 </div>
 
@@ -91,10 +102,13 @@ Kaydet
 
 </div>
 
+</main>
+
 </div>
 
-<script src="assets/js/sidebar.js"></script>
-
+<script src="assets/js/components/material-list.js"></script>
+<script src="assets/js/utils/json-validator.js"></script>
+<script src="assets/js/utils/draft.js"></script>
 <script src="assets/js/editor.js"></script>
 
 </body>
