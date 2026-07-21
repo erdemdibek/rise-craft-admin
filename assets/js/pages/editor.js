@@ -1,105 +1,117 @@
-const container=
-document.getElementById("materialContainer");
+const materialContainer = document.getElementById("materialContainer");
 
-document
-.getElementById("addMaterial")
-.onclick=()=>{
+const recipeIdInput = document.getElementById("recipeId");
+const recipeNameInput = document.getElementById("recipeName");
+const recipeLevelInput = document.getElementById("recipeLevel");
+const recipeXpInput = document.getElementById("recipeXp");
+const recipeIntermediateInput = document.getElementById("recipeIntermediate");
 
-container.appendChild(
+const jsonPreview = document.getElementById("jsonPreview");
 
-createMaterialRow()
+const addMaterialButton = document.getElementById("addMaterial");
+const saveDraftButton = document.getElementById("saveDraft");
 
-);
+addMaterialButton.addEventListener("click", () => {
 
-updatePreview();
+    materialContainer.appendChild(createMaterialRow());
 
-};
-
-document.addEventListener("click",e=>{
-
-if(e.target.closest(".removeMaterial")){
-
-e.target.closest(".material-row").remove();
-
-updatePreview();
-
-}
+    updatePreview();
 
 });
 
-document.addEventListener("input",updatePreview);
+document.addEventListener("click", e => {
 
-function updatePreview(){
+    const removeButton = e.target.closest(".removeMaterial");
 
-const materials={};
+    if (!removeButton) return;
 
-document.querySelectorAll(".material-row")
-.forEach(r=>{
+    removeButton.closest(".material-row").remove();
 
-const name=
-r.querySelector(".material-name").value;
-
-const amount=
-parseInt(
-
-r.querySelector(".material-count").value
-
-)||1;
-
-if(name!="")
-
-materials[name]=amount;
+    updatePreview();
 
 });
 
-const recipe={
+document.addEventListener("input", updatePreview);
 
-id:recipeId.value,
+function updatePreview() {
 
-name:recipeName.value,
+    const materials = {};
 
-levelRequired:Number(recipeLevel.value),
+    document.querySelectorAll(".material-row").forEach(row => {
 
-xpGiven:Number(recipeXp.value),
+        const materialName = row
+            .querySelector(".material-name")
+            .value
+            .trim();
 
-isIntermediate:recipeIntermediate.checked,
+        const materialCount = Number(
+            row.querySelector(".material-count").value
+        ) || 1;
 
-materials:materials
+        if (materialName !== "") {
 
-};
+            materials[materialName] = materialCount;
 
-jsonPreview.textContent=
+        }
 
-JSON.stringify(recipe,null,2);
+    });
+
+    const recipe = {
+
+        id: recipeIdInput.value.trim(),
+
+        name: recipeNameInput.value.trim(),
+
+        levelRequired: Number(recipeLevelInput.value),
+
+        xpGiven: Number(recipeXpInput.value),
+
+        isIntermediate: recipeIntermediateInput.checked,
+
+        materials
+
+    };
+
+    jsonPreview.textContent = JSON.stringify(recipe, null, 2);
 
 }
 
-saveDraft.onclick=()=>{
+saveDraftButton.addEventListener("click", () => {
 
-const recipe=
+    const recipe = JSON.parse(jsonPreview.textContent);
 
-JSON.parse(
+    const error = validateRecipe(recipe);
 
-jsonPreview.textContent
+    if (error) {
 
-);
+        alert(error);
 
-const error=
+        return;
 
-validateRecipe(recipe);
+    }
 
-if(error){
+    const recipes = [...state.recipes];
 
-alert(error);
+    const index = recipes.findIndex(r => r.id === recipe.id);
 
-return;
+    if (index >= 0) {
 
-}
+        recipes[index] = recipe;
 
-Draft.save(recipe);
+    } else {
 
-alert("Taslak kaydedildi.");
+        recipes.push(recipe);
 
-};
+    }
 
-updatePreview();
+    state.setRecipes(recipes);
+
+    state.saveDraft(state.currentProfession, recipes);
+
+    publishService.addRecipeFile(state.currentProfession, recipes);
+
+    navbar.update();
+
+    alert("Taslak kaydedildi.");
+
+});
