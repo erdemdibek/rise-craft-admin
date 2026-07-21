@@ -96,11 +96,17 @@ class GithubService {
 
     async downloadJson(path, forceRefresh = false) {
 
-        const file = await this.getFile(path, forceRefresh);
+    const file = await this.getFile(path, forceRefresh);
 
-        return JSON.parse(atob(file.content));
+    const text = decodeURIComponent(
+        escape(
+            atob(file.content)
+        )
+    );
 
-    }
+    return JSON.parse(text);
+
+}
 
     async uploadJson(path, json, message) {
 
@@ -119,11 +125,12 @@ class GithubService {
             sha: this.shaCache[path],
 
             content: btoa(
-
-                JSON.stringify(json, null, 2)
-
-            )
-
+    unescape(
+        encodeURIComponent(
+            JSON.stringify(json, null, 2)
+        )
+    )
+)
         };
 
         const response = await this.request(
