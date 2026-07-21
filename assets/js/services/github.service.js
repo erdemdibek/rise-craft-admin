@@ -179,7 +179,11 @@ class GithubService {
 
             sha: this.shaCache[path],
 
-            content: btoa(text)
+            content: btoa(
+    unescape(
+        encodeURIComponent(text)
+    )
+)
 
         };
 
