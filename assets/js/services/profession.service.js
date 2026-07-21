@@ -1,8 +1,7 @@
 class ProfessionService {
 
     constructor() {
-        this.path = "modules/professions.json";
-    }
+        this.path = "modules/recipes.json";
 
     async load(forceRefresh = false) {
 
