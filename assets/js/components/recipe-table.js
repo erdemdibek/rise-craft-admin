@@ -2,8 +2,7 @@ class RecipeTable {
 
     constructor(tableId) {
 
-        this.table =
-            document.getElementById(tableId);
+        this.table = document.getElementById(tableId);
 
         this.recipes = [];
 
@@ -11,7 +10,7 @@ class RecipeTable {
 
     setRecipes(recipes) {
 
-        this.recipes = recipes;
+        this.recipes = recipes ?? [];
 
         this.render();
 
@@ -27,9 +26,9 @@ class RecipeTable {
 
 <tr>
 
-<td colspan="6" class="text-center">
+<td colspan="6" class="text-center py-4">
 
-Bu meslekte henüz recipe bulunmuyor.
+Henüz recipe bulunmuyor.
 
 </td>
 
@@ -43,49 +42,126 @@ Bu meslekte henüz recipe bulunmuyor.
 
         this.recipes.forEach((recipe, index) => {
 
-            const row = document.createElement("tr");
+            this.table.appendChild(
 
-            row.innerHTML = `
+                this.createRow(recipe, index)
 
-<td>${recipe.id}</td>
+            );
 
-<td>${recipe.name}</td>
+        });
 
-<td>${recipe.levelRequired}</td>
+    }
 
-<td>${recipe.xpGiven}</td>
+    createRow(recipe, index) {
 
-<td>${recipe.isIntermediate ? "✔" : "-"}</td>
+        const tr = document.createElement("tr");
+
+        tr.dataset.index = index;
+
+        tr.innerHTML = `
 
 <td>
 
+<code>${recipe.id}</code>
+
+</td>
+
+<td>
+
+${recipe.name}
+
+</td>
+
+<td>
+
+${recipe.levelRequired}
+
+</td>
+
+<td>
+
+${recipe.xpGiven}
+
+</td>
+
+<td class="text-center">
+
+${recipe.isIntermediate
+? '<span class="badge bg-success">YES</span>'
+: '<span class="badge bg-secondary">NO</span>'}
+
+</td>
+
+<td>
+
+<div class="btn-group btn-group-sm">
+
 <button
-class="btn btn-warning btn-sm editRecipe"
-data-index="${index}">
+class="btn btn-warning editRecipe"
+data-index="${index}"
+title="Düzenle">
 
 <i class="bi bi-pencil"></i>
 
 </button>
 
 <button
-class="btn btn-danger btn-sm deleteRecipe"
-data-index="${index}">
+class="btn btn-danger deleteRecipe"
+data-index="${index}"
+title="Sil">
 
 <i class="bi bi-trash"></i>
 
 </button>
 
+</div>
+
 </td>
 
 `;
 
-            this.table.appendChild(row);
+        return tr;
 
-        });
+    }
+
+    refresh() {
+
+        this.render();
+
+    }
+
+    add(recipe) {
+
+        this.recipes.push(recipe);
+
+        this.render();
+
+    }
+
+    update(index, recipe) {
+
+        this.recipes[index] = recipe;
+
+        this.render();
+
+    }
+
+    remove(index) {
+
+        this.recipes.splice(index, 1);
+
+        this.render();
+
+    }
+
+    clear() {
+
+        this.recipes = [];
+
+        this.render();
 
     }
 
 }
 
-const recipeTable =
-    new RecipeTable("recipeTable");
+const recipeTable = new RecipeTable("recipeTable");
