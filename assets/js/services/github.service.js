@@ -14,7 +14,7 @@ class GithubService {
 
         return {
 
-            Authorization: `Bearer ${CONFIG.TOKEN}`,
+            Authorization: `Bearer ${authService.getToken()}`,
 
             Accept: "application/vnd.github+json",
 
@@ -32,6 +32,38 @@ class GithubService {
 
     }
 
+    async request(url, options = {}) {
+
+        const response = await fetch(url, {
+
+            ...options,
+
+            headers: {
+
+                ...this.headers(),
+
+                ...(options.headers || {})
+
+            }
+
+        });
+
+        if (response.status === 401) {
+
+            authService.clearToken();
+
+            alert("GitHub token geçersiz veya süresi dolmuş. Lütfen tekrar giriş yapın.");
+
+            location.reload();
+
+            throw new Error("Unauthorized");
+
+        }
+
+        return response;
+
+    }
+
     async getFile(path, forceRefresh = false) {
 
         if (!forceRefresh && this.fileCache[path]) {
@@ -40,15 +72,9 @@ class GithubService {
 
         }
 
-        const response = await fetch(
+        const response = await this.request(
 
-            `${this.api}/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/${path}?ref=${CONFIG.BRANCH}`,
-
-            {
-
-                headers: this.headers()
-
-            }
+            `${this.api}/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/${path}?ref=${CONFIG.BRANCH}`
 
         );
 
@@ -72,11 +98,7 @@ class GithubService {
 
         const file = await this.getFile(path, forceRefresh);
 
-        return JSON.parse(
-
-            atob(file.content)
-
-        );
+        return JSON.parse(atob(file.content));
 
     }
 
@@ -98,29 +120,19 @@ class GithubService {
 
             content: btoa(
 
-                JSON.stringify(
-
-                    json,
-
-                    null,
-
-                    2
-
-                )
+                JSON.stringify(json, null, 2)
 
             )
 
         };
 
-        const response = await fetch(
+        const response = await this.request(
 
             `${this.api}/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/${path}`,
 
             {
 
                 method: "PUT",
-
-                headers: this.headers(),
 
                 body: JSON.stringify(body)
 
@@ -130,11 +142,7 @@ class GithubService {
 
         if (!response.ok) {
 
-            throw new Error(
-
-                await response.text()
-
-            );
+            throw new Error(await response.text());
 
         }
 
@@ -168,15 +176,13 @@ class GithubService {
 
         };
 
-        const response = await fetch(
+        const response = await this.request(
 
             `${this.api}/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/${path}`,
 
             {
 
                 method: "PUT",
-
-                headers: this.headers(),
 
                 body: JSON.stringify(body)
 
@@ -186,11 +192,7 @@ class GithubService {
 
         if (!response.ok) {
 
-            throw new Error(
-
-                await response.text()
-
-            );
+            throw new Error(await response.text());
 
         }
 
