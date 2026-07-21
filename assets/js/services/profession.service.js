@@ -1,25 +1,18 @@
 class ProfessionService {
 
-    constructor(){
-
-        this.github=new GithubService();
-
+    constructor() {
+        this.path = "modules/professions.json";
     }
 
-    async load(){
+    async load(forceRefresh = false) {
 
-        return await this.github.getJson(
-
-            CONFIG.PATHS.PROFESSIONS
-
+        return await githubService.downloadJson(
+            this.path,
+            forceRefresh
         );
 
     }
 
-    getList(json){
-
-        return Object.keys(json);
-
-    }
-
 }
+
+const professionService = new ProfessionService();
