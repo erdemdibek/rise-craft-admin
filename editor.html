@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Editor - Rise Craft Studio</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Projedeki Mevcut CSS Dosyaları -->
+    <link rel="stylesheet" href="assets/css/theme.css">
+    <link rel="stylesheet" href="assets/css/app.css">
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- MOBILE MENU -->
+    <nav class="navbar navbar-dark d-lg-none top-mobile">
+        <div class="container-fluid">
+            <button class="btn btn-outline-warning"
+                    data-bs-toggle="offcanvas"
+                    data-bs-target="#sidebar">
+                <i class="bi bi-list"></i>
+            </button>
+
+            <span class="navbar-brand mb-0">
+                Recipe Editor
+            </span>
+
+            <button id="publishButton" class="btn btn-warning">
+                <i class="bi bi-cloud-upload"></i>
+                <span id="draftBadge">0</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- SIDEBAR -->
+    <div class="offcanvas-lg offcanvas-start sidebar" tabindex="-1" id="sidebar">
+        <div class="offcanvas-header">
+            <h4 class="text-warning">Rise Craft Studio</h4>
+            <button class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+        </div>
+
+        <div class="offcanvas-body p-0">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="bi bi-shield-fill"></i>
+                </div>
+                <h3>Rise Craft</h3>
+                <p>Admin Studio</p>
+            </div>
+
+            <div class="sidebar-menu">
+                <a href="dashboard.html" class="menu-item">
+                    <i class="bi bi-speedometer2"></i>
+                    Dashboard
+                </a>
+                <a href="recipes.html" class="menu-item active">
+                    <i class="bi bi-box-seam"></i>
+                    Recipes
+                </a>
+                <hr>
+                <h6 class="menu-title">CRAFT PROFESSIONS</h6>
+                <div id="professionMenu"></div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="github-status">
+                    <span class="dot"></span>
+                    GitHub Connected
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTENT -->
+    <main class="content">
+        <header class="topbar">
+            <div>
+                <h2 class="mb-1">
+                    <i class="bi bi-pencil-square text-warning"></i>
+                    Recipe Editor
+                </h2>
+                <small class="text-secondary">
+                    Rise Craft Companion Data Editor
+                </small>
+            </div>
+
+            <div class="d-flex align-items-center gap-3">
+                <small id="navbarStatus" class="text-success fw-semibold">
+                    ● Hazır
+                </small>
+
+                <span class="badge bg-warning text-dark px-3 py-2">
+                    Draft
+                    <span id="draftBadgeDesktop">0</span>
+                </span>
+
+                <button id="publishButtonDesktop" class="btn btn-warning">
+                    <i class="bi bi-cloud-upload"></i>
+                    Publish
+                </button>
+
+                <!-- backButton ID'li buton yapıldı (isDirty kontrolü için) -->
+                <button id="backButton" class="btn btn-outline-light">
+                    <i class="bi bi-arrow-left"></i>
+                    Recipes
+                </button>
+
+                <button id="saveDraft" class="btn btn-success">
+                    <i class="bi bi-save-fill"></i>
+                    Save Draft
+                </button>
+            </div>
+        </header>
+
+        <section class="container-fluid">
+            <div class="row g-4">
+                <!-- FORM -->
+                <div class="col-xl-7">
+                    <div class="editor-card">
+                        <h5 class="mb-4">General</h5>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="recipeId">Recipe ID</label>
+                                <input id="recipeId" class="form-control">
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="recipeName">Recipe Name</label>
+                                <input id="recipeName" class="form-control">
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="recipeLevel">Required Level</label>
+                                <input id="recipeLevel" type="number" class="form-control">
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="recipeXp">XP Given</label>
+                                <input id="recipeXp" type="number" class="form-control">
+                            </div>
+
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input id="recipeIntermediate" class="form-check-input" type="checkbox">
+                                    <label class="form-check-label" for="recipeIntermediate">
+                                        Intermediate Recipe
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">Materials</h5>
+                            <button id="addMaterial" class="btn btn-outline-warning">
+                                <i class="bi bi-plus-circle"></i> Material
+                            </button>
+                        </div>
+
+                        <div id="materialContainer"></div>
+                    </div>
+                </div>
+
+                <!-- PREVIEW -->
+                <div class="col-xl-5">
+                    <div class="editor-card sticky-top">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">
+                                <i class="bi bi-code-slash text-warning"></i>
+                                JSON Preview
+                            </h5>
+                            <span class="badge bg-success">LIVE</span>
+                        </div>
+
+                        <pre id="jsonPreview" class="json-preview">{ }</pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+</div>
+
+<!-- FLOATING SAVE -->
+<button id="floatingSave" class="btn btn-warning rounded-circle shadow floating-save d-lg-none">
+    <i class="bi bi-save-fill"></i>
+</button>
+
+<!-- TOAST -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="editorToast" class="toast text-bg-dark border-warning" role="alert">
+        <div class="toast-header bg-warning text-dark">
+            <strong class="me-auto">Rise Craft</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="toastMessage">
+            İşlem tamamlandı.
+        </div>
+    </div>
+</div>
+
+<!-- LOADING -->
+<div id="loadingOverlay" class="loading-overlay d-none">
+    <div class="text-center">
+        <div class="spinner-border text-warning mb-3"></div>
+        <h5>Loading...</h5>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/store/state.js"></script>
+
+<script src="assets/js/services/auth.service.js"></script>
+<script src="assets/js/services/github.service.js"></script>
+<script src="assets/js/services/manifest.service.js"></script>
+<script src="assets/js/services/profession.service.js"></script>
+<script src="assets/js/services/recipe.service.js"></script>
+<script src="assets/js/services/publish.service.js"></script>
+
+<script src="assets/js/components/sidebar.js"></script>
+<script src="assets/js/components/navbar.js"></script>
+
+<script src="assets/js/pages/editor.js"></script>
+
+<script>
+    const floatingSave = document.getElementById("floatingSave");
+    if (floatingSave) {
+        floatingSave.addEventListener("click", () => {
+            document.getElementById("saveDraft")?.click();
+        });
+    }
+</script>
+
+</body>
+</html>
