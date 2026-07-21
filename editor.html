@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Reçete Düzenle - Rise Craft Studio</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background-color: #10141c; color: #f8f9fa; font-family: system-ui, -apple-system, sans-serif; }
+        .form-control { background-color: #1a202c !important; color: #fff !important; border-color: #2d3748 !important; padding: 12px; }
+        .touch-btn { min-height: 48px; font-weight: 600; }
+        .material-row { background: #161b26; padding: 10px; border-radius: 8px; border: 1px solid #2d3748; }
+        .cursor-pointer { cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="p-3 border-bottom border-secondary d-flex justify-content-between align-items-center bg-dark sticky-top">
+    <button id="backBtn" class="btn btn-outline-light btn-sm rounded-pill px-3">
+        <i class="bi bi-arrow-left"></i> Geri
+    </button>
+    <h6 class="mb-0 text-warning fw-bold" id="pageTitle">Reçete Editörü</h6>
+    
+    <div class="d-flex gap-2">
+        <button id="saveDraft" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold">
+            <i class="bi bi-save"></i> Kaydet
+        </button>
+        <button id="publishBtn" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold">
+            <i class="bi bi-cloud-upload"></i> Yayınla
+        </button>
+    </div>
+</header>
+
+<main class="container-fluid p-3 pb-5">
+    <form id="recipeForm" onsubmit="return false;">
+        <div class="mb-3">
+            <label class="form-label text-secondary small fw-bold">REÇETE ID</label>
+            <input id="recipeId" class="form-control" placeholder="iron_sword_1" autocapitalize="none" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label text-secondary small fw-bold">REÇETE ADI</label>
+            <input id="recipeName" class="form-control" placeholder="Demir Kılıç" required>
+        </div>
+
+        <div class="row g-2 mb-3">
+            <div class="col-6">
+                <label class="form-label text-secondary small fw-bold">REQ. LEVEL</label>
+                <input id="recipeLevel" type="number" inputmode="numeric" class="form-control" value="1" min="1">
+            </div>
+            <div class="col-6">
+                <label class="form-label text-secondary small fw-bold">XP GIVEN</label>
+                <input id="recipeXp" type="number" inputmode="numeric" class="form-control" value="0" min="0">
+            </div>
+        </div>
+
+        <div class="form-check form-switch mb-4 fs-5">
+            <input id="recipeIntermediate" class="form-check-input" type="checkbox">
+            <label class="form-check-label fs-6 text-light pt-1" for="recipeIntermediate">Ara Materyal (Intermediate)</label>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <label class="form-label text-warning small fw-bold mb-0">MATERYALLER</label>
+            <button type="button" id="addMaterial" class="btn btn-outline-warning btn-sm">
+                <i class="bi bi-plus-lg"></i> Materyal Ekle
+            </button>
+        </div>
+
+        <div id="materialContainer" class="d-flex flex-column gap-2 mb-4">
+            <!-- Materyaller JS ile buraya dinamik eklenecek -->
+        </div>
+
+        <!-- JSON PREVIEW -->
+        <details class="mt-4">
+            <summary class="text-secondary small cursor-pointer">JSON Önizleme Göster/Gizle</summary>
+            <pre id="jsonPreview" class="bg-black text-warning p-3 rounded mt-2 small">{ }</pre>
+        </details>
+    </form>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/store/state.js"></script>
+<script src="assets/js/services/auth.service.js"></script>
+<script src="assets/js/services/github.service.js"></script>
+<script src="assets/js/services/manifest.service.js"></script>
+<script src="assets/js/services/profession.service.js"></script>
+<script src="assets/js/services/recipe.service.js"></script>
+<script src="assets/js/services/publish.service.js"></script>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const professionKey = urlParams.get('profession') || 'blacksmithing';
+    const recipeIdParam = urlParams.get('id');
+
+    let currentRecipes = [];
+    let isEditing = false;
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        // Geri butonu
+        document.getElementById("backBtn").addEventListener("click", () => {
+            window.location.href = "index.html";
+        });
+
+        // Reçeteleri yükle
+        try {
+            const response = await recipeService.load(professionKey);
+            currentRecipes = Array.isArray(response) ? response : (response?.recipes || []);
+
+            if (recipeIdParam) {
+                const targetRecipe = currentRecipes.find(r => r.id === recipeIdParam);
+                if (targetRecipe) {
+                    isEditing = true;
+                    fillForm(targetRecipe);
+                }
+            }
+        } catch (e) {
+            console.error("Veri yükleme hatası:", e);
+        }
+
+        // Event Dinleyicileri
+        document.getElementById("addMaterial").addEventListener("click", () => addMaterialRow());
+        document.getElementById("saveDraft").addEventListener("click", () => saveDraftProcess());
+        document.getElementById("publishBtn").addEventListener("click", () => publishProcess());
+
+        // Canlı JSON Önizleme Dinleyicileri
+        document.getElementById("recipeForm").addEventListener("input", updateJsonPreview);
+
+        updateJsonPreview();
+    });
+
+    function addMaterialRow(key = "", count = 1) {
+        const container = document.getElementById("materialContainer");
+        const row = document.createElement("div");
+        row.className = "material-row d-flex align-items-center gap-2";
+        row.innerHTML = `
+            <input type="text" class="form-control form-control-sm mat-key" placeholder="Materyal ID (örn: iron_ore)" value="${key}">
+            <input type="number" class="form-control form-control-sm mat-count" placeholder="Adet" value="${count}" style="max-width: 90px;" min="1">
+            <button type="button" class="btn btn-outline-danger btn-sm remove-mat">
+                <i class="bi bi-trash"></i>
+            </button>
+        `;
+
+        row.querySelector(".remove-mat").addEventListener("click", () => {
+            row.remove();
+            updateJsonPreview();
+        });
+
+        container.appendChild(row);
+        updateJsonPreview();
+    }
+
+    function fillForm(recipe) {
+        document.getElementById("pageTitle").innerText = "Reçete Düzenle";
+        document.getElementById("recipeId").value = recipe.id || "";
+        document.getElementById("recipeId").disabled = true;
+        document.getElementById("recipeName").value = recipe.name || "";
+        document.getElementById("recipeLevel").value = recipe.levelRequired ?? recipe.level ?? 1;
+        document.getElementById("recipeXp").value = recipe.xpGiven ?? 0;
+        document.getElementById("recipeIntermediate").checked = recipe.isIntermediate ?? false;
+
+        const container = document.getElementById("materialContainer");
+        container.innerHTML = "";
+
+        if (recipe.materials && typeof recipe.materials === "object") {
+            Object.entries(recipe.materials).forEach(([matKey, count]) => {
+                addMaterialRow(matKey, count);
+            });
+        }
+    }
+
+    function getFormData() {
+        const materials = {};
+        document.querySelectorAll(".material-row").forEach(row => {
+            const key = row.querySelector(".mat-key").value.trim();
+            const count = parseInt(row.querySelector(".mat-count").value) || 1;
+            if (key) {
+                materials[key] = count;
+            }
+        });
+
+        return {
+            id: document.getElementById("recipeId").value.trim(),
+            name: document.getElementById("recipeName").value.trim(),
+            levelRequired: parseInt(document.getElementById("recipeLevel").value) || 1,
+            xpGiven: parseInt(document.getElementById("recipeXp").value) || 0,
+            isIntermediate: document.getElementById("recipeIntermediate").checked,
+            materials: materials
+        };
+    }
+
+    function updateJsonPreview() {
+        const formData = getFormData();
+        document.getElementById("jsonPreview").textContent = JSON.stringify(formData, null, 2);
+    }
+
+    function saveDraftProcess() {
+        const recipeData = getFormData();
+
+        if (!recipeData.id || !recipeData.name) {
+            alert("Lütfen Reçete ID ve Reçete Adı alanlarını doldurun!");
+            return false;
+        }
+
+        const existingIndex = currentRecipes.findIndex(r => r.id === recipeData.id);
+        if (existingIndex > -1) {
+            currentRecipes[existingIndex] = recipeData;
+        } else {
+            currentRecipes.push(recipeData);
+        }
+
+        // PublishService üzerindeki metot veya doğrudan state aracılığıyla kaydediyoruz
+        if (typeof publishService !== "undefined" && typeof publishService.addRecipeFile === "function") {
+            publishService.addRecipeFile(professionKey, currentRecipes);
+        } else if (typeof state !== "undefined" && state.saveDraft) {
+            state.saveDraft(professionKey, currentRecipes);
+        }
+
+        alert("Reçete yerel taslağa kaydedildi! 💾");
+        return true;
+    }
+
+    async function publishProcess() {
+        const saved = saveDraftProcess(); // Önce taslağa kaydet
+        if (!saved) return;
+
+        // publishService.publish() metodunu doğrudan tetikliyoruz
+        if (typeof publishService !== "undefined" && typeof publishService.publish === "function") {
+            await publishService.publish();
+        } else {
+            alert("Publish servisi bulunamadı!");
+        }
+    }
+</script>
+</body>
+</html>
