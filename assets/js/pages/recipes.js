@@ -135,10 +135,10 @@ document.addEventListener("click", e => {
 
 function openEditor(index) {
 
-    state.setSelectedRecipe(state.recipes[index]);
+    const recipe = state.recipes[index];
 
     location.href =
-        `editor.html?profession=${state.currentProfession}&index=${index}`;
+        `editor.html?profession=${state.currentProfession}&id=${encodeURIComponent(recipe.id)}`;
 
 }
 
