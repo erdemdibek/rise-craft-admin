@@ -150,43 +150,73 @@ Profession
 
 <header class="topbar">
 
-<div>
+    <div>
 
-<h2>
+        <h2 class="mb-1">
 
-Recipe Editor
+            <i class="bi bi-pencil-square text-warning"></i>
 
-</h2>
+            Recipe Editor
 
-<p>
+        </h2>
 
-Rise Craft Companion
+        <small class="text-secondary">
 
-</p>
+            Rise Craft Companion Data Editor
 
-</div>
+        </small>
 
-<div class="top-actions">
+    </div>
 
-<a href="recipes.html"
-   class="btn btn-outline-light">
+    <div class="d-flex align-items-center gap-3">
 
-<i class="bi bi-arrow-left"></i>
+        <small id="navbarStatus"
+               class="text-success fw-semibold">
 
-Recipes
+            ● Hazır
 
-</a>
+        </small>
 
-<button id="saveDraft"
-        class="btn btn-warning">
+        <span class="badge bg-warning text-dark px-3 py-2">
 
-<i class="bi bi-save"></i>
+            Draft
 
-Save Draft
+            <span id="draftBadgeDesktop">
 
-</button>
+                0
 
-</div>
+            </span>
+
+        </span>
+
+        <button id="publishButtonDesktop"
+                class="btn btn-warning">
+
+            <i class="bi bi-cloud-upload"></i>
+
+            Publish
+
+        </button>
+
+        <a href="recipes.html"
+           class="btn btn-outline-light">
+
+            <i class="bi bi-arrow-left"></i>
+
+            Recipes
+
+        </a>
+
+        <button id="saveDraft"
+                class="btn btn-success">
+
+            <i class="bi bi-save-fill"></i>
+
+            Save Draft
+
+        </button>
+
+    </div>
 
 </header>
 
