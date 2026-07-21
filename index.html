@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rise Craft Studio</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background-color: #10141c; color: #f8f9fa; font-family: system-ui, -apple-system, sans-serif; }
+        .app-header { background: #161b26; border-bottom: 1px solid #2d3748; sticky-top: 0; z-index: 100; }
+        .recipe-card { background: #1a202c; border: 1px solid #2d3748; border-radius: 12px; transition: transform 0.1s; }
+        .recipe-card:active { transform: scale(0.98); }
+        .fab-add { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; border-radius: 50%; font-size: 24px; box-shadow: 0 4px 15px rgba(255,193,7,0.4); z-index: 1000; }
+        .form-select, .form-control { background-color: #1a202c !important; color: #fff !important; border-color: #2d3748 !important; }
+        .form-control::placeholder { color: #a0aec0; }
+    </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="app-header p-3 mb-3">
+    <div class="container-fluid p-0 d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-shield-fill text-warning fs-3"></i>
+            <div>
+                <h6 class="mb-0 fw-bold text-warning">Rise Craft</h6>
+                <small class="text-secondary" style="font-size: 11px;">Reçete Yöneticisi</small>
+            </div>
+        </div>
+        <button id="publishBtn" class="btn btn-warning btn-sm fw-bold px-3 py-2 rounded-pill d-flex align-items-center gap-1">
+            <i class="bi bi-cloud-upload"></i>
+            <span>Yayınla</span>
+            <span id="draftBadge" class="badge bg-dark text-warning ms-1">0</span>
+        </button>
+    </div>
+</header>
+
+<main class="container-fluid px-3 pb-5">
+    <!-- MESLEK SEÇİMİ VE ARAMA -->
+    <div class="row g-2 mb-3">
+        <div class="col-7">
+            <select id="professionSelect" class="form-select form-select-lg fs-6 fw-semibold">
+                <!-- JS ile dolacak -->
+            </select>
+        </div>
+        <div class="col-5">
+            <input type="text" id="searchInput" class="form-control form-control-lg fs-6" placeholder="Ara...">
+        </div>
+    </div>
+
+    <!-- REÇETE LİSTESİ -->
+    <div id="recipeList" class="d-flex flex-column gap-2">
+        <!-- Reçeteler JS ile buraya yüklenecek -->
+    </div>
+</main>
+
+<!-- YÜZEN EKLE BUTONU (FAB) -->
+<button id="addRecipeBtn" class="btn btn-warning fab-add d-flex align-items-center justify-content-center">
+    <i class="bi bi-plus-lg text-dark"></i>
+</button>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/store/state.js"></script>
+<script src="assets/js/services/auth.service.js"></script>
+<script src="assets/js/services/github.service.js"></script>
+<script src="assets/js/services/manifest.service.js"></script>
+<script src="assets/js/services/profession.service.js"></script>
+<script src="assets/js/services/recipe.service.js"></script>
+<script src="assets/js/services/publish.service.js"></script>
+
+<script>
+    let currentProfession = "weapon-smithing";
+    let allRecipes = [];
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        loadProfessions();
+        await fetchAndRenderRecipes();
+
+        document.getElementById("professionSelect").addEventListener("change", async (e) => {
+            currentProfession = e.target.value;
+            await fetchAndRenderRecipes();
+        });
+
+        document.getElementById("searchInput").addEventListener("input", (e) => {
+            renderList(e.target.value.toLowerCase());
+        });
+
+        document.getElementById("addRecipeBtn").addEventListener("click", () => {
+            window.location.href = `editor.html?profession=${currentProfession}`;
+        });
+
+        document.getElementById("publishBtn").addEventListener("click", async () => {
+            if (confirm("Tüm taslaklar GitHub'a yüklenecek. Onaylıyor musunuz?")) {
+                try {
+                    await publishService.publishAll();
+                    alert("Başarıyla yayınlandı! 🎉");
+                    location.reload();
+                } catch(e) {
+                    alert("Yayınlama hatası: " + e.message);
+                }
+            }
+        });
+    });
+
+    function loadProfessions() {
+        const professions = [
+            { id: "weapon-smithing", name: "Weapon Smithing" },
+            { id: "armor-smithing", name: "Armor Smithing" },
+            { id: "jewel-crafting", name: "Jewel Crafting" },
+            { id: "tailoring", name: "Tailoring" },
+            { id: "leatherworking", name: "Leatherworking" },
+            { id: "alchemy", name: "Alchemy" },
+            { id: "cooking", name: "Cooking" },
+            { id: "carpentry", name: "Carpentry" }
+        ];
+
+        const select = document.getElementById("professionSelect");
+        select.innerHTML = professions.map(p => `<option value="${p.id}">${p.name}</option>`).join("");
+    }
+
+    async function fetchAndRenderRecipes() {
+        const listEl = document.getElementById("recipeList");
+        listEl.innerHTML = `<div class="text-center text-secondary py-4"><div class="spinner-border spinner-border-sm text-warning"></div> Yükleniyor...</div>`;
+
+        try {
+            allRecipes = await recipeService.load(currentProfession);
+            renderList();
+        } catch(e) {
+            listEl.innerHTML = `<div class="alert alert-danger">Veri çekilemedi.</div>`;
+        }
+    }
+
+    function renderList(searchQuery = "") {
+        const listEl = document.getElementById("recipeList");
+        const filtered = allRecipes.filter(r => 
+            r.name.toLowerCase().includes(searchQuery) || 
+            r.id.toLowerCase().includes(searchQuery)
+        );
+
+        if (filtered.length === 0) {
+            listEl.innerHTML = `<div class="text-center text-secondary py-4">Reçete bulunamadı.</div>`;
+            return;
+        }
+
+        listEl.innerHTML = filtered.map(r => `
+            <div class="recipe-card p-3 d-flex justify-content-between align-items-center" onclick="location.href='editor.html?profession=${currentProfession}&id=${r.id}'">
+                <div>
+                    <div class="fw-bold text-white fs-6">${r.name}</div>
+                    <div class="text-secondary small">Lvl: ${r.levelRequired} | XP: ${r.xpGiven}</div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-secondary opacity-75">${Object.keys(r.materials || {}).length} Mat</span>
+                    <i class="bi bi-chevron-right text-warning"></i>
+                </div>
+            </div>
+        `).join("");
+    }
+</script>
+</body>
+</html>
