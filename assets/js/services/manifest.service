@@ -1,0 +1,26 @@
+import { Manifest } from "../models/manifest.model.js";
+
+export default class ManifestService {
+
+    constructor(baseUrl) {
+
+        this.baseUrl = baseUrl;
+
+    }
+
+    async load() {
+
+        const response = await fetch(
+            `${this.baseUrl}/manifest.json`
+        );
+
+        if (!response.ok)
+            throw new Error("Manifest okunamadı");
+
+        const json = await response.json();
+
+        return new Manifest(json);
+
+    }
+
+}
