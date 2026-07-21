@@ -18,6 +18,12 @@ class PublishService {
 
         );
 
+        if (typeof navbar !== "undefined") {
+
+            navbar.update();
+
+        }
+
     }
 
     hasChanges() {
@@ -40,12 +46,15 @@ class PublishService {
 
     async publish() {
 
-        if (this.isPublishing)
+        if (this.isPublishing) {
+
             return;
+
+        }
 
         if (!this.hasChanges()) {
 
-            alert("Publish edilecek değişiklik yok.");
+            alert("Publish edilecek değişiklik bulunmuyor.");
 
             return;
 
@@ -53,13 +62,19 @@ class PublishService {
 
         this.isPublishing = true;
 
+        if (typeof navbar !== "undefined") {
+
+            navbar.setLoading(true);
+
+        }
+
         try {
 
             const manifest = await manifestService.load();
 
-            // Önce recipe dosyalarını yükle
-
             for (const [path, recipes] of this.changedFiles) {
+
+                console.log("Uploading:", path);
 
                 await githubService.uploadJson(
 
@@ -73,23 +88,9 @@ class PublishService {
 
             }
 
-            // Manifest versiyonunu artır
+            manifestService.incrementRecipeVersion(manifest);
 
-            manifestService.incrementRecipeVersion(
-
-                manifest
-
-            );
-
-            // Manifest'i yükle
-
-            await manifestService.save(
-
-                manifest
-
-            );
-
-            // Draft temizle
+            await manifestService.save(manifest);
 
             this.changedFiles.forEach((_, path) => {
 
@@ -105,7 +106,11 @@ class PublishService {
 
             githubService.clearCache();
 
-            navbar.update();
+            if (typeof navbar !== "undefined") {
+
+                navbar.update();
+
+            }
 
             alert("Publish başarıyla tamamlandı.");
 
@@ -119,7 +124,7 @@ class PublishService {
 
                 "Publish sırasında hata oluştu.\n\n" +
 
-                e.message
+                (e.message || e)
 
             );
 
@@ -128,6 +133,12 @@ class PublishService {
         finally {
 
             this.isPublishing = false;
+
+            if (typeof navbar !== "undefined") {
+
+                navbar.setLoading(false);
+
+            }
 
         }
 
