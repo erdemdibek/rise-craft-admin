@@ -3,16 +3,19 @@
 
 <head>
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
 
-<title>Recipes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css" rel="stylesheet">
+    <title>Recipe Manager</title>
 
-<link rel="stylesheet" href="assets/css/theme.css">
-<link rel="stylesheet" href="assets/css/app.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="assets/css/theme.css">
+
+    <link rel="stylesheet" href="assets/css/app.css">
 
 </head>
 
@@ -20,70 +23,148 @@
 
 <div class="layout">
 
-<div id="sidebar"></div>
+    <aside class="sidebar">
 
-<div class="content">
+        <h3 class="mb-4 text-center">
 
-<div id="navbar"></div>
+            Rise Craft
 
-<div class="container-fluid mt-4">
+        </h3>
 
-<div class="d-flex justify-content-between mb-4">
+        <div class="list-group">
 
-<h2>Recipes</h2>
+            <a href="dashboard.html" class="list-group-item list-group-item-action">
 
-<button id="newRecipeBtn" class="btn btn-warning">
+                <i class="bi bi-speedometer2"></i>
 
-<i class="bi bi-plus-circle"></i>
+                Dashboard
 
-Yeni Recipe
+            </a>
 
-</button>
+            <a href="recipes.html" class="list-group-item list-group-item-action active">
+
+                <i class="bi bi-box"></i>
+
+                Recipes
+
+            </a>
+
+        </div>
+
+        <hr>
+
+        <h6 class="text-secondary mt-4">
+
+            Craft Professions
+
+        </h6>
+
+        <div id="professionMenu" class="list-group mt-2">
+
+        </div>
+
+    </aside>
+
+    <main class="content">
+
+        <div class="topbar">
+
+            <h4 id="selectedProfession">
+
+                Recipe Manager
+
+            </h4>
+
+        </div>
+
+        <div class="container-fluid mt-4">
+
+            <div class="d-flex justify-content-between mb-3">
+
+                <input
+
+                        id="searchInput"
+
+                        class="form-control w-50"
+
+                        placeholder="Recipe Ara...">
+
+                <button
+
+                        class="btn btn-warning"
+
+                        id="newRecipeButton">
+
+                    <i class="bi bi-plus-circle"></i>
+
+                    Yeni Recipe
+
+                </button>
+
+            </div>
+
+            <div class="table-responsive">
+
+                <table class="table table-dark table-hover align-middle">
+
+                    <thead>
+
+                    <tr>
+
+                        <th>ID</th>
+
+                        <th>Name</th>
+
+                        <th>Level</th>
+
+                        <th>XP</th>
+
+                        <th>Intermediate</th>
+
+                        <th width="120">İşlem</th>
+
+                    </tr>
+
+                    </thead>
+
+                    <tbody id="recipeTable">
+
+                    <tr>
+
+                        <td colspan="6" class="text-center">
+
+                            Sol menüden bir meslek seçiniz.
+
+                        </td>
+
+                    </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </main>
 
 </div>
 
-<input
-id="searchInput"
-class="form-control mb-4"
-placeholder="Recipe Ara...">
+<script src="assets/js/config.js"></script>
 
-<div class="table-responsive">
+<script src="assets/js/services/github.service.js"></script>
 
-<table class="table table-dark table-hover align-middle">
+<script src="assets/js/services/manifest.service.js"></script>
 
-<thead>
+<script src="assets/js/services/profession.service.js"></script>
 
-<tr>
+<script src="assets/js/services/recipe.service.js"></script>
 
-<th>ID</th>
-
-<th>Recipe</th>
-
-<th>Level</th>
-
-<th>XP</th>
-
-<th></th>
-
-</tr>
-
-</thead>
-
-<tbody id="recipeTable"></tbody>
-
-</table>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="assets/js/app.js"></script>
 
 <script src="assets/js/sidebar.js"></script>
+
 <script src="assets/js/recipes.js"></script>
 
 </body>
