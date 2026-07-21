@@ -8,9 +8,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         sidebar.render(professions);
 
-        bindSidebarEvents();
-
         bindSearch();
+        bindNewRecipe();
 
     } catch (e) {
 
@@ -26,12 +25,12 @@ async function loadProfession(profession) {
 
     try {
 
+        sidebar.setActive(profession);
+
         state.setCurrentProfession(profession);
 
-        document.getElementById("selectedProfession").innerText =
-            profession
-                .replaceAll("_", " ")
-                .replace(/\b\w/g, l => l.toUpperCase());
+        document.getElementById("selectedProfession").textContent =
+            formatProfession(profession);
 
         let recipes;
 
@@ -49,6 +48,8 @@ async function loadProfession(profession) {
 
         recipeTable.setRecipes(recipes);
 
+        navbar.update();
+
     } catch (e) {
 
         console.error(e);
@@ -59,33 +60,27 @@ async function loadProfession(profession) {
 
 }
 
-function bindSidebarEvents() {
-
-    document.querySelectorAll("[data-profession]").forEach(button => {
-
-        button.addEventListener("click", () => {
-
-            loadProfession(button.dataset.profession);
-
-        });
-
-    });
-
-}
-
 function bindSearch() {
 
     const input = document.getElementById("searchInput");
 
     input.addEventListener("input", () => {
 
-        const text = input.value.toLowerCase();
+        const keyword = input.value.trim().toLowerCase();
+
+        if (keyword === "") {
+
+            recipeTable.setRecipes(state.recipes);
+
+            return;
+
+        }
 
         const filtered = state.recipes.filter(recipe =>
 
-            recipe.name.toLowerCase().includes(text) ||
+            recipe.id.toLowerCase().includes(keyword) ||
 
-            recipe.id.toLowerCase().includes(text)
+            recipe.name.toLowerCase().includes(keyword)
 
         );
 
@@ -95,23 +90,44 @@ function bindSearch() {
 
 }
 
+function bindNewRecipe() {
+
+    document
+        .getElementById("newRecipeButton")
+        .addEventListener("click", () => {
+
+            if (!state.currentProfession) {
+
+                alert("Önce bir meslek seçiniz.");
+
+                return;
+
+            }
+
+            location.href =
+                `editor.html?profession=${state.currentProfession}`;
+
+        });
+
+}
+
 document.addEventListener("click", e => {
 
-    if (e.target.closest(".editRecipe")) {
+    const editButton = e.target.closest(".editRecipe");
 
-        const index =
-            e.target.closest(".editRecipe").dataset.index;
+    if (editButton) {
 
-        openEditor(index);
+        openEditor(Number(editButton.dataset.index));
+
+        return;
 
     }
 
-    if (e.target.closest(".deleteRecipe")) {
+    const deleteButton = e.target.closest(".deleteRecipe");
 
-        const index =
-            e.target.closest(".deleteRecipe").dataset.index;
+    if (deleteButton) {
 
-        deleteRecipe(index);
+        deleteRecipe(Number(deleteButton.dataset.index));
 
     }
 
@@ -128,10 +144,15 @@ function openEditor(index) {
 
 function deleteRecipe(index) {
 
-    if (!confirm("Recipe silinsin mi?"))
+    if (!confirm("Recipe silinsin mi?")) {
+
         return;
 
+    }
+
     state.recipes.splice(index, 1);
+
+    recipeTable.remove(index);
 
     state.saveDraft(
 
@@ -149,8 +170,15 @@ function deleteRecipe(index) {
 
     );
 
-    recipeTable.setRecipes(state.recipes);
-
     navbar.update();
+
+}
+
+function formatProfession(name) {
+
+    return name
+        .split("_")
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
 
 }
