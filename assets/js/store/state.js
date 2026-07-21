@@ -10,8 +10,6 @@ class AppState {
 
         this.recipes = [];
 
-        this.selectedRecipe = null;
-
         this.drafts = {};
 
     }
@@ -40,11 +38,6 @@ class AppState {
 
     }
 
-    setSelectedRecipe(recipe) {
-
-        this.selectedRecipe = recipe;
-
-    }
 
     saveDraft(profession, recipes) {
 
