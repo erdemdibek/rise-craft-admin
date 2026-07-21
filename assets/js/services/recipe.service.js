@@ -1,19 +1,18 @@
 class RecipeService {
 
-    constructor(){
+    async load(profession, forceRefresh = false) {
 
-        this.github=new GithubService();
+        if (!profession) {
+            throw new Error("Meslek belirtilmedi.");
+        }
 
-    }
-
-    async load(profession){
-
-        return await this.github.getJson(
-
-`${CONFIG.PATHS.RECIPES}/${profession}.json`
-
+        return await githubService.downloadJson(
+            `modules/recipes/${profession}.json`,
+            forceRefresh
         );
 
     }
 
 }
+
+const recipeService = new RecipeService();
